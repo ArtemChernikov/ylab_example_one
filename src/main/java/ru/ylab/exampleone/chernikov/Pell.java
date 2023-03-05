@@ -14,12 +14,12 @@ public class Pell {
             if (n == 0) {
                 System.out.println(0);
             } else {
-                int[] numbers = new int[n + 1];
+                long[] numbers = new long[n + 1];
                 numbers[0] = 0;
                 numbers[1] = 1;
                 for (int i = 2; i < numbers.length; i++) {
-                    int a = numbers[i - 2];
-                    int b = numbers[i - 1];
+                    long a = numbers[i - 2];
+                    long b = numbers[i - 1];
                     numbers[i] = b * 2 + a;
                 }
                 System.out.println(numbers[n]);
