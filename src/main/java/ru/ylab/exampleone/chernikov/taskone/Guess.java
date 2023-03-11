@@ -1,4 +1,4 @@
-package ru.ylab.exampleone.chernikov;
+package ru.ylab.exampleone.chernikov.taskone;
 
 import java.util.Random;
 import java.util.Scanner;

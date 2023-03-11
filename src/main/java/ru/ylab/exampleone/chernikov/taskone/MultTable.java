@@ -1,4 +1,4 @@
-package ru.ylab.exampleone.chernikov;
+package ru.ylab.exampleone.chernikov.taskone;
 
 /**
  * @author Artem Chernikov
