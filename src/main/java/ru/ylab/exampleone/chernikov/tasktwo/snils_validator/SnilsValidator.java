@@ -1,5 +1,10 @@
 package ru.ylab.exampleone.chernikov.tasktwo.snils_validator;
 
+/**
+ * @author Artem Chernikov
+ * @version 1.0
+ * @since 12.03.2023
+ */
 public interface SnilsValidator {
     /**
      * Поле общая длина номера СНИЛС

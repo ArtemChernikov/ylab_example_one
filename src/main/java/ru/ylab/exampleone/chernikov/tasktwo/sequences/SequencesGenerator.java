@@ -1,5 +1,10 @@
 package ru.ylab.exampleone.chernikov.tasktwo.sequences;
 
+/**
+ * @author Artem Chernikov
+ * @version 1.0
+ * @since 11.03.2023
+ */
 public interface SequencesGenerator {
     /**
      * Выводит в консоль n первых членов последовательности A
