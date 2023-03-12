@@ -9,7 +9,9 @@ public class SnilsValidatorImpl implements SnilsValidator {
     @Override
     public boolean validate(String snils) {
         boolean valid = true;
-        if (snils.length() == 0) {
+        if (snils == null) {
+            valid = false;
+        } else if (snils.length() == 0) {
             valid = false;
         } else if (!snils.matches("^[0-9]*$")) {
             valid = false;

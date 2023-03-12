@@ -1,14 +1,16 @@
 package ru.ylab.exampleone.chernikov.tasktwo.stats_accumulator;
 
+import java.util.Optional;
+
 /**
  * @author Artem Chernikov
  * @version 1.0
  * @since 12.03.2023
  */
 public class StatsAccumulatorImpl implements StatsAccumulator {
-    private int min = Integer.MAX_VALUE;
+    private Optional<Integer> min = Optional.empty();
 
-    private int max = Integer.MIN_VALUE;
+    private Optional<Integer> max = Optional.empty();
 
     private int count = 0;
 
@@ -18,11 +20,16 @@ public class StatsAccumulatorImpl implements StatsAccumulator {
 
     @Override
     public void add(int value) {
-        if (value < min) {
-            min = value;
-        }
-        if (value > max) {
-            max = value;
+        if (min.isEmpty() && max.isEmpty()) {
+            min = Optional.of(value);
+            max = Optional.of(value);
+        } else {
+            if (value < min.get()) {
+                min = Optional.of(value);
+            }
+            if (value > max.get()) {
+                max = Optional.of(value);
+            }
         }
         count++;
         sum += value;
@@ -31,12 +38,18 @@ public class StatsAccumulatorImpl implements StatsAccumulator {
 
     @Override
     public int getMin() {
-        return min;
+        if (min.isEmpty()) {
+            throw new IllegalStateException("Не было добавлено ни одного числа");
+        }
+        return min.get();
     }
 
     @Override
     public int getMax() {
-        return max;
+        if (max.isEmpty()) {
+            throw new IllegalStateException("Не было добавлено ни одного числа");
+        }
+        return max.get();
     }
 
     @Override
