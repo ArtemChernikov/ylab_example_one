@@ -8,7 +8,7 @@ package ru.ylab.exampleone.chernikov.tasktwo.sequences;
 public class SequencesGeneratorImpl implements SequencesGenerator {
     @Override
     public void a(int n) {
-        long number = 0;
+        int number = 0;
         for (int i = 0; i < n; i++) {
             number += 2;
             System.out.println(number);
@@ -17,7 +17,7 @@ public class SequencesGeneratorImpl implements SequencesGenerator {
 
     @Override
     public void b(int n) {
-        long number = 1;
+        int number = 1;
         for (int i = 0; i < n; i++) {
             System.out.println(number);
             number += 2;
@@ -83,7 +83,7 @@ public class SequencesGeneratorImpl implements SequencesGenerator {
 
     @Override
     public void i(int n) {
-        long number = 1;
+        int number = 1;
         for (int i = 1; i <= n; i++) {
             number *= i;
             System.out.println(number);
@@ -92,11 +92,11 @@ public class SequencesGeneratorImpl implements SequencesGenerator {
 
     @Override
     public void j(int n) {
-        long number = 1;
-        long tempNumber = 0;
+        int number = 1;
+        int tempNumber = 0;
         for (int i = 0; i < n; i++) {
             System.out.println(number);
-            long temp = number;
+            int temp = number;
             number += tempNumber;
             tempNumber = temp;
         }
