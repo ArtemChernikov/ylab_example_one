@@ -59,4 +59,13 @@ public class Employee {
     public List<Employee> getSubordinate() {
         return subordinate;
     }
+
+    @Override
+    public String toString() {
+        return "Employee{"
+                + "id=" + id
+                + ", bossId=" + bossId
+                + ", subordinate=" + subordinate
+                + '}';
+    }
 }

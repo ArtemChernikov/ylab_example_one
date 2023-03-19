@@ -10,7 +10,7 @@ import java.io.IOException;
  */
 public class OrgStructureTest {
     public static void main(String[] args) {
-        File file = new File("src/main/resources/org_structure/list.csv");
+        File file = new File("src/main/resources/org_structure/list1.csv");
         OrgStructureParser orgStructureParser = new OrgStructureParserImpl();
         try {
             System.out.println(orgStructureParser.parseStructure(file));

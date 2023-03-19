@@ -54,13 +54,11 @@ public class OrgStructureParserImpl implements OrgStructureParser {
      */
     private void setSubordinates(Employee employee, List<Employee> employees) {
         Long employeeId = employee.getId();
-        if (employee.getSubordinate().isEmpty()) {
             for (Employee emp : employees) {
                 if (employeeId.equals(emp.getBossId())) {
                     employee.getSubordinate().add(emp);
                 }
             }
-        }
     }
 
     /**
@@ -71,7 +69,7 @@ public class OrgStructureParserImpl implements OrgStructureParser {
      */
     private void setBoss(Employee employee, List<Employee> employees) {
         Long bossId = employee.getBossId();
-        if (bossId != null && employee.getBoss() == null) {
+        if (bossId != null) {
             employee.setBoss(employees.stream().filter(emp -> emp.getId().equals(bossId)).findAny().orElse(null));
         }
     }
