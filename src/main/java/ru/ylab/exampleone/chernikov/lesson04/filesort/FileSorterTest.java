@@ -1,6 +1,6 @@
 package ru.ylab.exampleone.chernikov.lesson04.filesort;
 
-import io.ylab.intensive.lesson04.DbUtil;
+import ru.ylab.exampleone.chernikov.lesson04.DbUtil;
 
 import javax.sql.DataSource;
 import java.io.File;
