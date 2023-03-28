@@ -1,10 +1,7 @@
 package ru.ylab.exampleone.chernikov.lesson04.persistentmap;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,15 +43,48 @@ public class PersistentMapImpl implements PersistentMap {
      */
     @Override
     public boolean containsKey(String key) throws SQLException {
+//        if (key != null) {
+//            try (Connection connection = dataSource.getConnection();
+//                 PreparedStatement preparedStatement = connection.prepareStatement(
+//                         "SELECT * FROM persistent_map WHERE map_name = ? AND key = ?;"
+//                 )) {
+//                preparedStatement.setString(1, name);
+//                preparedStatement.setString(2, key);
+//                ResultSet resultSet = preparedStatement.executeQuery();
+//                if (resultSet.next()) {
+//                    return true;
+//                }
+//            }
+//        } else {
+//            try (Connection connection = dataSource.getConnection();
+//                 PreparedStatement preparedStatement = connection.prepareStatement(
+//                         "SELECT * FROM persistent_map WHERE map_name = ? AND key IS NULL;"
+//                 )) {
+//                preparedStatement.setString(1, name);
+//                ResultSet resultSet = preparedStatement.executeQuery();
+//                if (resultSet.next()) {
+//                    return true;
+//                }
+//            }
+//        }
+        boolean keyIsNull = key == null;
+        String sql = "SELECT * FROM persistent_map WHERE map_name = ? AND key "
+                + (keyIsNull ? "IS NULL;" : "= ?;");
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     "SELECT * FROM persistent_map WHERE map_name = ? AND key = ?;"
-             )) {
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, key);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                return true;
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            if (keyIsNull) {
+                preparedStatement.setString(1, name);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    return true;
+                }
+            } else {
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, key);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    return true;
+                }
             }
         }
         return false;
@@ -91,15 +121,24 @@ public class PersistentMapImpl implements PersistentMap {
      */
     @Override
     public String get(String key) throws SQLException {
+        boolean keyIsNull = key == null;
+        String sql = "SELECT value FROM persistent_map WHERE key "
+                + (keyIsNull ? "IS NULL AND map_name = ?;" : "= ? AND map_name = ?;");
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     "SELECT value FROM persistent_map WHERE key = ? AND map_name = ?;"
-             )) {
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, name);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                return resultSet.getString(1);
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            if (keyIsNull) {
+                preparedStatement.setString(1, name);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getString(1);
+                }
+            } else {
+                preparedStatement.setString(1, key);
+                preparedStatement.setString(2, name);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    return resultSet.getString(1);
+                }
             }
         }
         return null;
@@ -113,13 +152,19 @@ public class PersistentMapImpl implements PersistentMap {
      */
     @Override
     public void remove(String key) throws SQLException {
+        boolean keyIsNull = key == null;
+        String sql = "DELETE FROM persistent_map WHERE key "
+                + (keyIsNull ? "IS NULL AND map_name = ?;" : "= ? AND map_name = ?;");
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(
-                     "DELETE FROM persistent_map WHERE key = ? AND map_name = ?;"
-             )) {
-            preparedStatement.setString(1, key);
-            preparedStatement.setString(2, name);
-            preparedStatement.executeUpdate();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            if (keyIsNull) {
+                preparedStatement.setString(1, name);
+                preparedStatement.executeUpdate();
+            } else {
+                preparedStatement.setString(1, key);
+                preparedStatement.setString(2, name);
+                preparedStatement.executeUpdate();
+            }
         }
     }
 
