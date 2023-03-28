@@ -3,12 +3,10 @@ package ru.ylab.exampleone.chernikov.lesson04.eventsourcing.api;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.ylab.exampleone.chernikov.lesson04.eventsourcing.Person;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
@@ -44,17 +42,18 @@ public class PersonApiImpl implements PersonApi {
      */
     public static final String DELETE_ROUTING_KEY = "delete_key";
     /**
-     * Поле для создания соединений с RabbitMQ
+     * Поле соединение с БД
      */
-    private final ConnectionFactory connectionFactory;
+    private final java.sql.Connection databaseConnection;
     /**
-     * Поле для создания соединений с БД
+     * Поле соединение с RabbitMQ
      */
-    private final DataSource dataSource;
+    private final Connection mqConnection;
 
-    public PersonApiImpl(ConnectionFactory connectionFactory, DataSource dataSource) {
-        this.connectionFactory = connectionFactory;
-        this.dataSource = dataSource;
+
+    public PersonApiImpl(java.sql.Connection databaseConnection, Connection mqConnection) {
+        this.databaseConnection = databaseConnection;
+        this.mqConnection = mqConnection;
     }
 
     /**
@@ -64,13 +63,16 @@ public class PersonApiImpl implements PersonApi {
      */
     @Override
     public void deletePerson(Long personId) {
-        try (Connection connection = connectionFactory.newConnection();
-             Channel channel = connection.createChannel()) {
-            String message = "Delete:" + personId;
-            createExchangeAndQueue(channel);
-            channel.basicPublish(EXCHANGE_NAME, DELETE_ROUTING_KEY, null, message.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | TimeoutException e) {
-            LOGGER.error(e.getMessage(), e);
+        if (personId != null && personId > 0) {
+            try (Channel channel = mqConnection.createChannel()) {
+                String message = "Delete:" + personId;
+                createExchangeAndQueue(channel);
+                channel.basicPublish(EXCHANGE_NAME, DELETE_ROUTING_KEY, null, message.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException | TimeoutException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        } else {
+            LOGGER.error("Введен некорректный id");
         }
     }
 
@@ -84,14 +86,18 @@ public class PersonApiImpl implements PersonApi {
      */
     @Override
     public void savePerson(Long personId, String firstName, String lastName, String middleName) {
-        try (Connection connection = connectionFactory.newConnection();
-             Channel channel = connection.createChannel()) {
-            String message = "Save:" + personId + ":" + firstName + ":" + lastName + ":" + middleName;
-            createExchangeAndQueue(channel);
-            channel.basicPublish(EXCHANGE_NAME, SAVE_ROUTING_KEY, null, message.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | TimeoutException e) {
-            LOGGER.error(e.getMessage(), e);
+        if (personId != null && personId > 0 && firstName != null && lastName != null && middleName != null) {
+            try (Channel channel = mqConnection.createChannel()) {
+                String message = "Save:" + personId + ":" + firstName + ":" + lastName + ":" + middleName;
+                createExchangeAndQueue(channel);
+                channel.basicPublish(EXCHANGE_NAME, SAVE_ROUTING_KEY, null, message.getBytes(StandardCharsets.UTF_8));
+            } catch (IOException | TimeoutException e) {
+                LOGGER.error(e.getMessage(), e);
+            }
+        } else {
+            LOGGER.error("Введены некорректные данные");
         }
+
     }
 
     /**
@@ -102,15 +108,18 @@ public class PersonApiImpl implements PersonApi {
      */
     @Override
     public Person findPerson(Long personId) {
-        try (java.sql.Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM person WHERE person_id = ?;")) {
-            preparedStatement.setLong(1, personId);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
-                return setPerson(resultSet);
+        if (personId != null && personId > 0) {
+            try (PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM person WHERE person_id = ?;")) {
+                preparedStatement.setLong(1, personId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+                if (resultSet.next()) {
+                    return setPerson(resultSet);
+                }
+            } catch (SQLException e) {
+                LOGGER.error(e.getMessage(), e);
             }
-        } catch (SQLException e) {
-            LOGGER.error(e.getMessage(), e);
+        } else {
+            LOGGER.error("Введен некорректный id");
         }
         return null;
     }
@@ -123,8 +132,7 @@ public class PersonApiImpl implements PersonApi {
     @Override
     public List<Person> findAll() {
         List<Person> persons = new ArrayList<>();
-        try (java.sql.Connection connection = dataSource.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM person;")) {
+        try (PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM person;")) {
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 persons.add(setPerson(resultSet));

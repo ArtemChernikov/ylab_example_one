@@ -6,14 +6,18 @@ import ru.ylab.exampleone.chernikov.lesson04.RabbitMQUtil;
 
 
 import javax.sql.DataSource;
+import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DbApp {
     public static void main(String[] args) throws Exception {
         DataSource dataSource = initDb();
         ConnectionFactory connectionFactory = initMQ();
-        DataProcessor dataProcessor = new DataProcessorImpl(dataSource, connectionFactory);
-        dataProcessor.getMessage();
+        try (Connection databaseConnection = dataSource.getConnection();
+             com.rabbitmq.client.Connection mqConnection = connectionFactory.newConnection()) {
+            DataProcessor dataProcessor = new DataProcessorImpl(databaseConnection, mqConnection);
+            dataProcessor.getMessage();
+        }
     }
 
     private static ConnectionFactory initMQ() throws Exception {

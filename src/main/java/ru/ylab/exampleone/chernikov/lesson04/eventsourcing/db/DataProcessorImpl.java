@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import ru.ylab.exampleone.chernikov.lesson04.eventsourcing.Person;
 import ru.ylab.exampleone.chernikov.lesson04.eventsourcing.api.PersonApiImpl;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.sql.PreparedStatement;
@@ -41,25 +40,24 @@ public class DataProcessorImpl implements DataProcessor {
      */
     public static final String DELETE_ROUTING_KEY = "delete_key";
     /**
-     * Поле для создания соединений с БД
+     * Поле соединение с БД
      */
-    private final DataSource dataSource;
+    private final java.sql.Connection databaseConnection;
     /**
-     * Поле для создания соединений с RabbitMQ
+     * Поле соединение с RabbitMQ
      */
-    private final ConnectionFactory connectionFactory;
+    private final Connection mqConnection;
 
-    public DataProcessorImpl(DataSource dataSource, ConnectionFactory connectionFactory) {
-        this.dataSource = dataSource;
-        this.connectionFactory = connectionFactory;
+    public DataProcessorImpl(java.sql.Connection databaseConnection, Connection mqConnection) {
+        this.databaseConnection = databaseConnection;
+        this.mqConnection = mqConnection;
     }
 
     /**
      * Метод используется для чтения и выполнения сообщений-команд из очереди
      */
     public void getMessage() {
-        try (Connection connection = connectionFactory.newConnection();
-             Channel channel = connection.createChannel()) {
+        try (Channel channel = mqConnection.createChannel()) {
             channel.exchangeDeclare(EXCHANGE_NAME, BuiltinExchangeType.DIRECT);
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
             channel.queueBind(QUEUE_NAME, EXCHANGE_NAME, SAVE_ROUTING_KEY);
@@ -86,9 +84,8 @@ public class DataProcessorImpl implements DataProcessor {
      */
     @Override
     public void deletePerson(Long personId) {
-        try (java.sql.Connection databaseConnection = dataSource.getConnection();
-             PreparedStatement preparedStatement = databaseConnection.prepareStatement(
-                     "DELETE FROM person WHERE person_id = ?;")) {
+        try (PreparedStatement preparedStatement = databaseConnection.prepareStatement(
+                "DELETE FROM person WHERE person_id = ?;")) {
             preparedStatement.setLong(1, personId);
             int isDeleted = preparedStatement.executeUpdate();
             if (isDeleted == 0) {
@@ -112,12 +109,12 @@ public class DataProcessorImpl implements DataProcessor {
      */
     @Override
     public void savePerson(Long personId, String firstName, String lastName, String middleName) {
-        try (java.sql.Connection databaseConnection = dataSource.getConnection()) {
+        try {
             Person person = new Person(personId, firstName, lastName, middleName);
-            if (personExists(databaseConnection, personId)) {
-                update(databaseConnection, person);
+            if (personExists(personId)) {
+                update(person);
             } else {
-                save(databaseConnection, person);
+                save(person);
             }
         } catch (SQLException e) {
             LOGGER.error(e.getMessage(), e);
@@ -127,11 +124,10 @@ public class DataProcessorImpl implements DataProcessor {
     /**
      * Метод используется для обновления данных о персоне в БД
      *
-     * @param databaseConnection - соединение с БД
-     * @param person             - новые данные о персоне
+     * @param person - новые данные о персоне
      * @throws SQLException - может выбросить {@link SQLException}
      */
-    private void update(java.sql.Connection databaseConnection, Person person) throws SQLException {
+    private void update(Person person) throws SQLException {
         try (PreparedStatement preparedStatement = databaseConnection.prepareStatement(
                 "UPDATE person SET first_name = ?, last_name = ?, middle_name = ? WHERE person_id = ?;"
         )) {
@@ -147,11 +143,10 @@ public class DataProcessorImpl implements DataProcessor {
     /**
      * Метод испоьзуется для сохранения новой персоны в БД
      *
-     * @param databaseConnection - соединение с БД
-     * @param person             - новая персона
+     * @param person - новая персона
      * @throws SQLException - может выбросить {@link SQLException}
      */
-    private void save(java.sql.Connection databaseConnection, Person person) throws SQLException {
+    private void save(Person person) throws SQLException {
         try (PreparedStatement preparedStatement = databaseConnection.prepareStatement(
                 "INSERT INTO person VALUES (?, ?, ?, ?);"
         )) {
@@ -167,12 +162,11 @@ public class DataProcessorImpl implements DataProcessor {
     /**
      * Метод используется для проверки есть ли запись в БД по id
      *
-     * @param databaseConnection - соединение с БД
-     * @param id                 - id
+     * @param id - id
      * @return - возвращает true если запись существет, иначе false
      * @throws SQLException - может выбросить {@link SQLException}
      */
-    private boolean personExists(java.sql.Connection databaseConnection, long id) throws SQLException {
+    private boolean personExists(long id) throws SQLException {
         try (PreparedStatement preparedStatement = databaseConnection.prepareStatement(
                 "SELECT FROM person WHERE person_id = ?;"
         )) {
