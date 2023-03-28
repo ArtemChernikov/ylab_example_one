@@ -11,12 +11,15 @@ public class MovieTest {
     DataSource dataSource = initDb();
     MovieLoader movieLoader = new MovieLoaderImpl(dataSource);
 
-    File dataFile = new File("movies.csv");
+    File dataFile = new File("src/main/resources/movie/film.csv");
     movieLoader.loadData(dataFile);
 
     /**
      * Тут написать в комментариях запрос получения всех 
      */
+    /* SELECT subject, count(*)
+       FROM movie
+       GROUP BY subject; */
   }
 
   private static DataSource initDb() throws SQLException {
