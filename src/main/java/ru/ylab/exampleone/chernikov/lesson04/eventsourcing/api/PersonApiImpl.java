@@ -108,18 +108,18 @@ public class PersonApiImpl implements PersonApi {
      */
     @Override
     public Person findPerson(Long personId) {
-        if (personId != null && personId > 0) {
-            try (PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM person WHERE person_id = ?;")) {
-                preparedStatement.setLong(1, personId);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    return setPerson(resultSet);
-                }
-            } catch (SQLException e) {
-                LOGGER.error(e.getMessage(), e);
-            }
-        } else {
+        if (personId == null || personId > 0) {
             LOGGER.error("Введен некорректный id");
+            return null;
+        }
+        try (PreparedStatement preparedStatement = databaseConnection.prepareStatement("SELECT * FROM person WHERE person_id = ?;")) {
+            preparedStatement.setLong(1, personId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return setPerson(resultSet);
+            }
+        } catch (SQLException e) {
+            LOGGER.error(e.getMessage(), e);
         }
         return null;
     }

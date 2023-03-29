@@ -9,51 +9,7 @@ import java.sql.Types;
 import java.util.Scanner;
 
 public class MovieLoaderImpl implements MovieLoader {
-    /**
-     * Поле первый столбец csv файла (year)
-     */
-    private static final int YEAR_INDEX = 0;
-    /**
-     * Поле второй столбец csv файла (length)
-     */
-    private static final int LENGTH_INDEX = 1;
-    /**
-     * Поле третий столбец csv файла (title)
-     */
-    private static final int TITLE_INDEX = 2;
-    /**
-     * Поле четвертый столбец csv файла (subject)
-     */
-    private static final int SUBJECT_INDEX = 3;
-    /**
-     * Поле пятый столбец csv файла (actor)
-     */
-    private static final int ACTOR_INDEX = 4;
-    /**
-     * Поле шестой столбец csv файла (actress)
-     */
-    private static final int ACTRESS_INDEX = 5;
-    /**
-     * Поле седьмой столбец csv файла (director)
-     */
-    private static final int DIRECTOR_INDEX = 6;
-    /**
-     * Поле восьмой столбец csv файла (popularity)
-     */
-    private static final int POPULARITY_INDEX = 7;
-    /**
-     * Поле девятый столбец csv файла (awards)
-     */
-    private static final int AWARDS_INDEX = 8;
-    /**
-     * Поле последний столбец csv файла (image), его мы игнорируем
-     */
-    private static final int IMAGE_INDEX = 9;
 
-    /**
-     * Поле разделитель данных в csv файле
-     */
-    private static final String DELIMITER = ";";
     /**
      * Поле для создания соединения с БД
      */
@@ -112,10 +68,8 @@ public class MovieLoaderImpl implements MovieLoader {
      * @throws SQLException - может выбросить {@link SQLException}
      */
     private void setMovie(PreparedStatement preparedStatement, Movie movie) throws SQLException {
-        Object[] fieldsArray = new Object[]{movie.getYear(), movie.getLength(), movie.getTitle(), movie.getSubject(),
-                movie.getActors(), movie.getActress(), movie.getDirector(), movie.getPopularity(), movie.getAwards()};
-        int[] typesArray = new int[]{Types.INTEGER, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
-                Types.VARCHAR, Types.VARCHAR, Types.INTEGER, Types.BOOLEAN};
+        Object[] fieldsArray = getMovieData(movie);
+        int[] typesArray = getTypes();
         for (int i = 0; i < fieldsArray.length; i++) {
             Object field = fieldsArray[i];
             if (field == null) {
@@ -134,21 +88,21 @@ public class MovieLoaderImpl implements MovieLoader {
      */
     private Movie createMovie(String movieData) {
         Movie movie = new Movie();
-        try (Scanner scanner = new Scanner(movieData).useDelimiter(DELIMITER)) {
+        try (Scanner scanner = new Scanner(movieData).useDelimiter(MovieLoaderConstants.DELIMITER)) {
             int index = 0;
-            while (index < IMAGE_INDEX) {
+            while (index < MovieLoaderConstants.IMAGE_INDEX) {
                 String data = scanner.next();
                 if (!data.isEmpty()) {
                     switch (index) {
-                        case YEAR_INDEX -> movie.setYear(Integer.parseInt(data));
-                        case LENGTH_INDEX -> movie.setLength(Integer.parseInt(data));
-                        case TITLE_INDEX -> movie.setTitle(data);
-                        case SUBJECT_INDEX -> movie.setSubject(data);
-                        case ACTOR_INDEX -> movie.setActors(data);
-                        case ACTRESS_INDEX -> movie.setActress(data);
-                        case DIRECTOR_INDEX -> movie.setDirector(data);
-                        case POPULARITY_INDEX -> movie.setPopularity(Integer.parseInt(data));
-                        case AWARDS_INDEX -> movie.setAwards("Yes".equalsIgnoreCase(data));
+                        case MovieLoaderConstants.YEAR_INDEX -> movie.setYear(Integer.parseInt(data));
+                        case MovieLoaderConstants.LENGTH_INDEX -> movie.setLength(Integer.parseInt(data));
+                        case MovieLoaderConstants.TITLE_INDEX -> movie.setTitle(data);
+                        case MovieLoaderConstants.SUBJECT_INDEX -> movie.setSubject(data);
+                        case MovieLoaderConstants.ACTOR_INDEX -> movie.setActors(data);
+                        case MovieLoaderConstants.ACTRESS_INDEX -> movie.setActress(data);
+                        case MovieLoaderConstants.DIRECTOR_INDEX -> movie.setDirector(data);
+                        case MovieLoaderConstants.POPULARITY_INDEX -> movie.setPopularity(Integer.parseInt(data));
+                        case MovieLoaderConstants.AWARDS_INDEX -> movie.setAwards("Yes".equalsIgnoreCase(data));
                         default -> throw new IllegalStateException("Unexpected value: " + index);
                     }
                 }
@@ -156,5 +110,42 @@ public class MovieLoaderImpl implements MovieLoader {
             }
         }
         return movie;
+    }
+
+    /**
+     * Метод используется для получения свойств фильма
+     *
+     * @param movie - фильм
+     * @return - возвращает массив со свойствами фильма
+     */
+    private Object[] getMovieData(Movie movie) {
+        return new Object[]{
+                movie.getYear(),
+                movie.getLength(),
+                movie.getTitle(),
+                movie.getSubject(),
+                movie.getActors(),
+                movie.getActress(),
+                movie.getDirector(),
+                movie.getPopularity(),
+                movie.getAwards()};
+    }
+
+    /**
+     * Метод используется для получения типов БД в определенном порядке (порядок полей объекта {@link Movie})
+     *
+     * @return - возвращает массив с типами
+     */
+    private int[] getTypes() {
+        return new int[]{
+                Types.INTEGER,
+                Types.INTEGER,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.VARCHAR,
+                Types.INTEGER,
+                Types.BOOLEAN};
     }
 }

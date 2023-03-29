@@ -49,17 +49,12 @@ public class PersistentMapImpl implements PersistentMap {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);
-            if (keyIsNull) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    return true;
-                }
-            } else {
+            if (!keyIsNull) {
                 preparedStatement.setString(2, key);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    return true;
-                }
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return true;
             }
         }
         return false;
@@ -102,17 +97,12 @@ public class PersistentMapImpl implements PersistentMap {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setString(1, name);
-            if (keyIsNull) {
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    return resultSet.getString(1);
-                }
-            } else {
+            if (!keyIsNull) {
                 preparedStatement.setString(2, key);
-                ResultSet resultSet = preparedStatement.executeQuery();
-                if (resultSet.next()) {
-                    return resultSet.getString(1);
-                }
+            }
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(1);
             }
         }
         return null;
