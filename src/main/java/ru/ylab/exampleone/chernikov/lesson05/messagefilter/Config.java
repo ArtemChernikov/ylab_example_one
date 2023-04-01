@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.sql.DataSource;
 
 @Configuration
-@ComponentScan("io.ylab.intensive.lesson05.messagefilter")
+@ComponentScan("ru.ylab.exampleone.chernikov.lesson05.messagefilter")
 public class Config {
   
   @Bean

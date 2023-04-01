@@ -1,6 +1,6 @@
 package ru.ylab.exampleone.chernikov.lesson05.eventsourcing.api;
 
-import io.ylab.intensive.lesson05.eventsourcing.Person;
+import ru.ylab.exampleone.chernikov.lesson05.eventsourcing.Person;
 
 import java.util.List;
 
